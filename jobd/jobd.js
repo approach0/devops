@@ -65,6 +65,9 @@ jobsldr.load(jobsdir).catch(err => {
 		let taskID = req.params.taskid;
 		routeHandler.handle_kill_task(taskID, res);
 
+	}).get('/list_envs', function (req, res) {
+		res.json({'envs': Object.keys(jobs.env)});
+
 	}).get('/list_tasks', function (req, res) {
 		routeHandler.handle_list_tasks(res);
 

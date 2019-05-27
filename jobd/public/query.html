@@ -13,6 +13,7 @@ $(document).ready(function () {
 			dataType: "json" /* expecting data type */,
 			data: JSON.stringify({
 				type: $("#type").val(),
+				env: $("#env").val(),
 				target: $("#target").val()
 			})
 		}).done(function (msg) {
@@ -56,10 +57,29 @@ $(document).ready(function () {
 		});
 	}
 
+	function pullEnvs() {
+		$('#env').html('');
+		$.ajax({
+			method: "GET",
+			url:"list_envs",
+			contentType: "application/text; charset=utf-8",
+			dataType: "json" /* expecting data type */
+		}).done(function (envs_json) {
+			var envs = envs_json['envs'];
+			for (var i = 0; i < envs.length; i ++) {
+				var fmt = '<option value="%">%</option>';
+				fmt = fmt.replace(/%/g, envs[i]);
+				console.log(fmt);
+				$('#env').append(fmt);
+			}
+		});
+	}
+
 	$("#log-area").click(function() { pullLog(); });
 	$("#retjson").text(JSON.stringify({}));
 
 	pullLog();
+	pullEnvs();
 });
 </script>
 <style>
@@ -78,9 +98,10 @@ $(document).ready(function () {
 
 <p>
 Stared queries:
-	<a href="javascript: void(0)" class="common-query">proj:reset-all</a>
-	<a href="javascript: void(0)" class="common-query">service:all-up</a>
-	<a href="javascript: void(0)" class="common-query">tkcloud:up</a>
+	<a href="javascript: void(0)" class="common-query">cralwer:running</a>,
+	<a href="javascript: void(0)" class="common-query">indexer:running</a>,
+	<a href="javascript: void(0)" class="common-query">deploy:done</a>,
+	<a href="javascript: void(0)" class="common-query">searchd:restart</a>
 </p>
 
 <select id="type">
@@ -88,7 +109,11 @@ Stared queries:
 <option value="unit">unit</option>
 <option value="dryrun">dryrun</option>
 </select>
-<input  id="target" type="search" placeholder="target name"/>
+
+<select id="env">
+</select>
+
+<input  id="target" type="search" placeholder="job name"/>
 <button id="query">run</button>
 
 <h3>Stdin</h3>
