@@ -2,8 +2,8 @@ var jobRunner = require('./jobrunner.js');
 var logger = require('./joblogger.js');
 var fs = require('fs');
 
-const fv_all = 40;
-const fv_one = 80;
+const fv_all = 80;
+const fv_one = 200;
 const maxFailsToBreak = 3;
 
 function getLogdir(jobsdir) {
@@ -18,17 +18,21 @@ function masterLog(logdir, line) {
 	logger.write('all', logdir, line, fv_all);
 }
 
-function slaveLog(jobname, logdir, line) {
-	logger.write(jobname, logdir, line, fv_one);
+function slaveLog(env, jobname, logdir, line) {
+	const id = jobname + '-' + env;
+	logger.write(id, logdir, line, fv_one);
 	logger.write('all', logdir, line, fv_all);
-	console.log('[' + jobname + '] ' + line);
+	console.log('[' + id + '] ' + line);
 }
 
-exports.handle_log = function (jobsdir, jobname, res) {
+exports.handle_log = function (jobsdir, env, jobname, res) {
 	let logdir = getLogdir(jobsdir);
+	var id = jobname;
+	if (env !== undefined)
+		id += '-' + env;
 	res.set('Content-Type', 'text/plain');
 	res.header("Access-Control-Allow-Origin", "*");
-	logger.read(jobname, logdir, function (lines) {
+	logger.read(id, logdir, function (lines) {
 		res.write(lines);
 	}, function () {
 		res.end();
@@ -89,6 +93,7 @@ exports.handle_query = function (req, res, user, jobsdir, jobs) {
 	let reqJson = req.body;
 	let type = reqJson['type'] || '';
 	let target = reqJson['target'] || '';
+	let env_name = reqJson['env'] || '';
 	let runList = [];
 	let logdir = getLogdir(jobsdir);
 
@@ -131,7 +136,7 @@ exports.handle_query = function (req, res, user, jobsdir, jobs) {
 	/* fail counter, will break the loop if fail too many times */
 	let failCnt = 0;
 
-	jobRunner.run(0, runList, user, jobs,
+	jobRunner.run(0, runList, user, env_name, jobs,
 	/* on Spawn: */
 	function (jobname, props) {
 		masterLog(logdir, 'Start to run: [' + jobname + ']');
@@ -145,7 +150,7 @@ exports.handle_query = function (req, res, user, jobsdir, jobs) {
 				failCnt = 0;
 			} else {
 				failCnt ++;
-				slaveLog(jobname, logdir, 'Fails: ' + failCnt);
+				slaveLog(env_name, jobname, logdir, 'Fails: ' + failCnt);
 				if (failCnt >= maxFailsToBreak) {
 					onBreak();
 					return 1;
@@ -157,7 +162,7 @@ exports.handle_query = function (req, res, user, jobsdir, jobs) {
 	},
 	/* on Final: */
 	function (jobname, completed) {
-		slaveLog(jobname, logdir, 'Finished: [' + jobname +
+		slaveLog(env_name, jobname, logdir, 'Finished: [' + jobname +
 		    ' (' + (completed ? 'successful' : 'failed') + ')]\n');
 	},
 	/* on Log: */
@@ -165,6 +170,6 @@ exports.handle_query = function (req, res, user, jobsdir, jobs) {
 		if (jobname == 'all')
 			masterLog(logdir, line);
 		else
-			slaveLog(jobname, logdir, line);
+			slaveLog(env_name, jobname, logdir, line);
 	});
 };

@@ -86,12 +86,12 @@ exports.spawn = function(cmd, opt, logLines, onExit,
 	return runner;
 }
 
-var runSingle = function(task_job, user, jobs, loop,
+var runSingle = function(task_job, user, env_name, jobs, loop,
                          onLog, onJobExit) {
 	// parse
-	let cfgEnv = jobs.env;
 	let jobname = task_job.name;
 	let targetProps = jobs.depGraph.getNodeData(jobname);
+	let env = jobs.env[env_name] || {};
 	let cmd = targetProps['exe'] || '';
 	let cwd = targetProps['cwd'] || '.';
 	let exer = targetProps['exer'] || user;
@@ -130,11 +130,11 @@ var runSingle = function(task_job, user, jobs, loop,
 		'HOME': (exer == 'root') ? '/root' : '/home/' + exer,
 		'SHELL': '/bin/sh'
 	};
-	env = extend(defaultEnv, cfgEnv);
+	runEnv = extend(defaultEnv, env);
 
 	// construct spawn options
 	let opts = {
-		'env': env,
+		'env': runEnv,
 		'cwd': cwd,
 		'user': exer,
 		'group': exer,
@@ -198,11 +198,12 @@ function scheduleJob(task_job, jobs, onLog, invokeFun)
 	}
 }
 
-exports.run = function(parentTaskID, runList, user, jobs, onSpawn,
-                       onExit, onFinal, onLog) {
+exports.run = function(parentTaskID, runList, user, env_name, jobs,
+                       onSpawn, onExit, onFinal, onLog) {
 	/* create task history */
 	let task = tasks.create(runList);
 	task["parent_task"] = parentTaskID;
+	task["env_name"] = env_name;
 
 	/* sync running */
 	syncLoop(runList, function (arr, idx, loop) {
@@ -234,7 +235,7 @@ exports.run = function(parentTaskID, runList, user, jobs, onSpawn,
 				return;
 			}
 
-			/* make run list */
+			/* make runlist */
 			let subList = [];
 			let deps = jobs.depGraph.dependenciesOf(ref);
 			deps.forEach(function (dep) {
@@ -242,8 +243,9 @@ exports.run = function(parentTaskID, runList, user, jobs, onSpawn,
 			});
 			subList.push(ref);
 
-			exports.run(task.id, subList, user, jobs, onSpawn, onExit,
-			/* on Final */ function (j, completed) {
+			exports.run(task.id, subList, user, env_name, jobs,
+				onSpawn, onExit,
+				/* on Final */ function (j, completed) {
 				if (completed)
 					loop.next();
 				else
@@ -265,7 +267,7 @@ exports.run = function(parentTaskID, runList, user, jobs, onSpawn,
 			onSpawn(jobname, props); /* callback */
 
 			/* actually run */
-			runSingle(task_job, user, jobs, loop, onLog, onExit);
+			runSingle(task_job, user, env_name, jobs, loop, onLog, onExit);
 		});
 	}, function (arr, idx, loop, completed) {
 		let jobname = arr[idx];

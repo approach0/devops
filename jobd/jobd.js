@@ -55,8 +55,13 @@ jobsldr.load(jobsdir).catch(err => {
 	}).post('/stdin', function (req, res) {
 		routeHandler.handle_stdin(req, res);
 
-	}).get('/log/:jobname', function (req, res) {
-		routeHandler.handle_log(jobsdir, req.params.jobname, res);
+	}).get('/log/:env/:jobname', function (req, res) {
+		routeHandler.handle_log(jobsdir,
+			req.params.env, req.params.jobname, res);
+
+	}).get('/log/all', function (req, res) {
+		routeHandler.handle_log(jobsdir,
+			undefined, 'all', res);
 
 	}).get('/show/:jobname', function (req, res) {
 		routeHandler.handle_show(jobs, req.params.jobname, res);

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script type="text/javascript" src="vendor/jquery/jquery.min.js"></script>
 <script>
-function showjob(jobname, invoke_time_str, pid) {
+function showjob(env_name, jobname, invoke_time_str, pid) {
 	/* copy jobname to clipboard */
 	$('#jobname').val(jobname);
 	$('#jobname').select();
@@ -18,9 +18,9 @@ function showjob(jobname, invoke_time_str, pid) {
 	}).done(function (res) {
 		$("#retjson").text(jobname + ' pid#' + pid + ' ' + invoke_time_str +
 		                   JSON.stringify(res, null, 2));
-		pullLog(jobname);
+		pullLog(env_name, jobname);
 		$("#log-area").unbind().click(function() {
-			pullLog(jobname);
+			pullLog(env_name, jobname);
 			/* stick the view point to the bottom */
 			$("html, body").animate({ scrollTop: $(document).height() });
 		});
@@ -29,10 +29,10 @@ function showjob(jobname, invoke_time_str, pid) {
 	});
 }
 
-function pullLog(jobname) {
+function pullLog(env_name, jobname) {
 	$.ajax({
 		method: "GET",
-		url:"log/" + jobname,
+		url:"log/" + env_name + '/' + jobname,
 		contentType: "application/text; charset=utf-8",
 		dataType: "text" /* expecting data type */
 	}).done(function (log) {
@@ -48,8 +48,9 @@ function printTasks(tasks) {
 		var print = '';
 		print += '[<a href="javascript:;" onclick="kill({0})">X</a>] ';
 		print = print.replace('{0}', task.id);
-		print += '<b>Task#{1} ';
+		print += '<b>Task#{1} {2} ';
 		print = print.replace('{1}', task.id);
+		print = print.replace('{2}', task.env_name);
 		if (task.parent_task != 0) {
 			print += '(parent: #{1})';
 			print = print.replace('{1}', task.parent_task);
@@ -71,8 +72,9 @@ function printTasks(tasks) {
 					print = print.replace('{style}', "background-color: #f9d7d7");
 			else
 				print = print.replace('{style}', "background-color: grey");
-			print = print.replace('{0}', "'" + task_job.name + "', '" +
-								  invoke_time_str + "', " + task_job.last_pid);
+			print = print.replace('{0}', "'" +
+				task.env_name + "', '" + task_job.name + "', '" +
+				invoke_time_str + "', " + task_job.last_pid);
 			print = print.replace('{1}', task_job.name);
 			print = print.replace('{2}', task_job.touch_cnt);
 			print = print.replace('{3}', (timestamp1 - timestamp0) / 1000);
@@ -94,7 +96,6 @@ function pullTaskList() {
 		var tasks = res['tasks'] || [];
 		var print = '';
 		printTasks(tasks);
-		$("#log").text(''); /* clear log */
 	}).fail(function() {
 		$("#retjson").html('ajax call failed.');
 	});
@@ -120,6 +121,8 @@ $(document).ready(function () {
 	$("#refresh").click(function() {
 		pullTaskList();
 	});
+
+	setInterval(function(){ pullTaskList(); }, 3000);
 	pullTaskList();
 
 	$("#killall").click(function() {

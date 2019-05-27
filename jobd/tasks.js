@@ -5,6 +5,7 @@ exports.create = function(runList) {
 	g_id += 1;
 	var new_task = {
 		"id": g_id, /* task ID */
+		"env_name": {},  /* task environment */
 		"cur_job_idx": 0, /* current job index */
 		"parent_task": 0, /* parent task ID */
 		joblist: []
