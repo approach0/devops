@@ -118,9 +118,9 @@ exports.load = function (jobsdir) {
 				});
 
 				Promise.all(promises).then(envs => {
-					const evobj = envs.reduce((obj, item) => {
-						obj[item[0]] = item[1];
-						return obj;
+					let evobj = {};
+					envs.forEach((item) => {
+						evobj[item[0]] = item[1];
 					});
 					envs_resolve(evobj)
 				});
