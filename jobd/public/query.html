@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="vendor/jquery/jquery.min.js"></script>
+<script>
+$(document).ready(function () {
+	const errstr = "authd is down, or did't login.";
+	$("#query").click(function() {
+		$.ajax({
+			method: "POST",
+			url:"run",
+			contentType: "application/json; charset=utf-8",
+			dataType: "json" /* expecting data type */,
+			data: JSON.stringify({
+				type: $("#type").val(),
+				target: $("#target").val()
+			})
+		}).done(function (msg) {
+			$("#retjson").text(JSON.stringify(msg, null, 2));
+			setTimeout(pullLog, 500);
+		}).fail(function() {
+			$("#retjson").html(errstr);
+		});
+	});
+
+	$("a.common-query").click(function() {
+		const t = $(this).text();
+		$('#target').val(t);
+	});
+
+	$("#stdin-button").click(function() {
+		$.ajax({
+			method: "POST",
+			url:"stdin",
+			contentType: "application/json; charset=utf-8",
+			dataType: "json" /* expecting data type */,
+			data: JSON.stringify({
+				'stdin': $("#stdin-string").val(),
+			})
+		}).done(function (msg) {
+			$("#retjson").text(JSON.stringify(msg, null, 2));
+			setTimeout(pullLog, 500);
+		}).fail(function() {
+			$("#retjson").html(errstr);
+		});
+	});
+
+	function pullLog() {
+		$.ajax({
+			method: "GET",
+			url:"log/all",
+			contentType: "application/text; charset=utf-8",
+			dataType: "text" /* expecting data type */
+		}).done(function (log) {
+			$("#log").text(log);
+		});
+	}
+
+	$("#log-area").click(function() { pullLog(); });
+	$("#retjson").text(JSON.stringify({}));
+
+	pullLog();
+});
+</script>
+<style>
+#log-area:hover {
+	cursor:pointer;
+}
+</style>
+</head>
+<body>
+<p>
+	<a href="graph.html">graph</a>,
+	<a href="tasks.html">tasks</a>,
+	<a href="log/all">logofall</a>.
+</p>
+<h3>Query</h3>
+
+<p>
+Stared queries:
+	<a href="javascript: void(0)" class="common-query">proj:reset-all</a>
+	<a href="javascript: void(0)" class="common-query">service:all-up</a>
+	<a href="javascript: void(0)" class="common-query">tkcloud:up</a>
+</p>
+
+<select id="type">
+<option value="goal">goal</option>
+<option value="unit">unit</option>
+<option value="dryrun">dryrun</option>
+</select>
+<input  id="target" type="search" placeholder="target name"/>
+<button id="query">run</button>
+
+<h3>Stdin</h3>
+<input  id="stdin-string" type="search" placeholder="standard input"/>
+<button id="stdin-button">input</button>
+
+<h3>Return JSON</h3>
+<span id="retjson" style="color:gray"></span>
+
+<h3>Log</h3>
+<div id="log-area">
+<pre id="log" style="background:black;color:gray;">
+</pre>
+</div>
+
+</body>
+</html>

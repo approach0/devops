@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link  href="vendor/mermaid/mermaid.css" rel="stylesheet"/>
+    <script src="vendor/mermaid/mermaid.min.js"></script>
+    <script src="vendor/jquery/jquery.min.js"></script>
+<script>
+$(document).ready(function () {
+	mermaidAPI.initialize({startOnLoad:false});
+	$.ajax({
+		method: "GET",
+		url:"deps",
+		contentType: "application/json; charset=utf-8",
+		dataType: "json" /* expecting data type */
+	}).done(function (retjson) {
+		var graphDef = 'graph LR \n';
+		var depgraph = retjson['graph'] || {};
+		for (var node in depgraph) {
+			var depArr = depgraph[node]['dep'];
+			var refJob = depgraph[node]['ref'];
+			if (depArr.length == 0 && refJob == undefined) {
+				graphDef += node + "\n";
+			} else {
+				for (var i in depArr) {
+					graphDef += node + ' -.-> ' + depArr[i] + "\n";
+				}
+				if (refJob != undefined) {
+					graphDef += node + ' --> ' + refJob + "\n";
+				}
+			}
+		}
+
+		console.log(graphDef);
+
+		mermaidAPI.render('mermsvg', graphDef, function(svg){
+			$("#mermaid").html(svg);
+			setTimeout(function () {
+				var svgs = document.getElementsByTagName("svg");
+				var svg = svgs[0];
+				svg.setAttribute("height", 1600);
+			}, 100);
+
+			/* bind click function */
+			var nodes = $('g[class="node"]');
+			$(nodes).css({'cursor': 'pointer'});
+			$(nodes).on('click', function() {
+				var jobname = $(this).find('foreignObject div').html();
+				/* copy jobname to clipboard */
+				$('#jobname').val(jobname);
+				$('#jobname').select();
+				document.execCommand('copy');
+				/* show job info */
+				$.ajax({
+					method: "GET",
+					url:"show/" + jobname,
+					contentType: "application/json; charset=utf-8",
+					dataType: "json" /* expecting data type */
+				}).done(function (res) {
+					$("#retjson").text(JSON.stringify(res, null, 2));
+				}).fail(function() {
+					$("#retjson").html('ajax call failed.');
+				});
+			});
+		});
+	});
+
+	$("#reload").click(function() {
+		$.ajax({
+			method: "GET",
+			url:"reload/",
+			contentType: "application/json; charset=utf-8",
+			dataType: "json" /* expecting data type */
+		}).done(function (res) {
+			$("#retjson").text(JSON.stringify(res, null, 2));
+			setTimeout(function () {
+				location.reload(); /* refresh page */
+			}, 1000);
+		}).fail(function() {
+			$("#retjson").html('ajax call failed.');
+		});
+	});
+});
+</script>
+</head>
+<body>
+<div>
+Clicked job name (to be copied to clipboard): <input id="jobname"></input>
+</div>
+<button id="reload">reload jobs</button>
+
+<span id="retjson"
+style="background-color:#ffcfcf; position:fixed; left: 0; bottom: 0; font-size:large">
+hello!
+</span>
+<div id="mermaid" class="mermaid"></div>
+</body>
+</html>

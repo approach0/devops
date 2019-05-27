@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="vendor/jquery/jquery.min.js"></script>
+<script>
+function showjob(jobname, invoke_time_str, pid) {
+	/* copy jobname to clipboard */
+	$('#jobname').val(jobname);
+	$('#jobname').select();
+	document.execCommand('copy');
+	/* request job description */
+	$.ajax({
+		method: "GET",
+		url:"show/" + jobname,
+		contentType: "application/json; charset=utf-8",
+		dataType: "json" /* expecting data type */
+	}).done(function (res) {
+		$("#retjson").text(jobname + ' pid#' + pid + ' ' + invoke_time_str +
+		                   JSON.stringify(res, null, 2));
+		pullLog(jobname);
+		$("#log-area").unbind().click(function() {
+			pullLog(jobname);
+			/* stick the view point to the bottom */
+			$("html, body").animate({ scrollTop: $(document).height() });
+		});
+	}).fail(function() {
+		$("#retjson").html('ajax call failed.');
+	});
+}
+
+function pullLog(jobname) {
+	$.ajax({
+		method: "GET",
+		url:"log/" + jobname,
+		contentType: "application/text; charset=utf-8",
+		dataType: "text" /* expecting data type */
+	}).done(function (log) {
+		$("#log").text(log);
+	});
+}
+
+function printTasks(tasks) {
+	$("#tasks").empty();
+	for (var i = 0; i < tasks.length; i ++) {
+		var task = tasks[i];
+		var cur_job_idx = task.cur_job_idx;
+		var print = '';
+		print += '[<a href="javascript:;" onclick="kill({0})">X</a>] ';
+		print = print.replace('{0}', task.id);
+		print += '<b>Task#{1} ';
+		print = print.replace('{1}', task.id);
+		if (task.parent_task != 0) {
+			print += '(parent: #{1})';
+			print = print.replace('{1}', task.parent_task);
+		}
+		print += '</b>:';
+		$("#tasks").append(print);
+		for (var j = 0; j < task.joblist.length; j ++) {
+			var task_job = task.joblist[j];
+			print = '<span style="{style}; border-width: thin; border-style: solid;">' +
+					'<a href="javascript:;" onclick="showjob({0})">{1}</a>' +
+					' (touch:{2}, time_interval:{3}ms) </span>';
+			if (j <= cur_job_idx)
+				if (task_job.last_exitcode == 0)
+					print = print.replace('{style}', "background-color: #c4ffc4");
+				else
+					print = print.replace('{style}', "background-color: #f9d7d7");
+			else
+				print = print.replace('{style}', "background-color: grey");
+			print = print.replace('{0}', "'" + task_job.name + "', '" +
+								  invoke_time_str + "', " + task_job.last_pid);
+			print = print.replace('{1}', task_job.name);
+			print = print.replace('{2}', task_job.touch_cnt);
+			var timestamp0 = task_job['invoke_time'] || 0;
+			var timestamp1 = task_job['finish_time'] || 0;
+			var invoke_time_str = (new Date(timestamp0)).toString();
+			print = print.replace('{3}', (timestamp1 - timestamp0) / 1000);
+			$("#tasks").append(print);
+		}
+		$("#tasks").append('<br/><br/>');
+	}
+}
+
+function pullTaskList() {
+	$.ajax({
+		method: "GET",
+		url:"list_tasks",
+		contentType: "application/json; charset=utf-8",
+		dataType: "json" /* expecting data type */
+	}).done(function (res) {
+		var reslen = res['tasks'].length;
+		$("#retjson").text('tasks: ' + reslen);
+		var tasks = res['tasks'] || [];
+		var print = '';
+		printTasks(tasks);
+		$("#log").text(''); /* clear log */
+	}).fail(function() {
+		$("#retjson").html('ajax call failed.');
+	});
+}
+
+function kill(taskID) {
+	$.ajax({
+		method: "GET",
+		url:"kill_task/" + taskID,
+		contentType: "application/json; charset=utf-8",
+		dataType: "json" /* expecting data type */
+	}).done(function (res) {
+		$("#retjson").text(JSON.stringify(res, null, 2));
+		setTimeout(function () {
+			pullTaskList();
+		}, 500);
+	}).fail(function() {
+		$("#retjson").html('ajax call failed.');
+	});
+}
+
+$(document).ready(function () {
+	$("#refresh").click(function() {
+		pullTaskList();
+	});
+	pullTaskList();
+
+	$("#killall").click(function() {
+		if (confirm("Kill all running tasks?")) {
+			kill(0);
+		}
+	});
+});
+</script>
+<style>
+#log-area:hover {
+	cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<button id="refresh">refresh list</button>
+<button id="killall">kill all jobs</button>
+Current selected jobname: <input id="jobname"></input>
+
+<h3>Return JSON</h3>
+<span id="retjson" style="color:gray"></span>
+
+<h3>Task list</h3>
+<div id="tasks">
+</div>
+
+<div id="log-area">
+<pre id="log" style="background:black;color:gray;">
+</pre>
+</div>
+
+</body>
+</html>
