@@ -81,21 +81,6 @@ exports.handle_kill_task = function (taskID, res) {
 	res.json({'res': 'successful'});
 };
 
-exports.handle_reload = function (res, jobsldr, jobsdir, jobs) {
-	var newjobs = {};
-	try {
-		newjobs = jobsldr.load(jobsdir);
-		console.log('all jobs reloaded.');
-	} catch (e) {
-		console.log(e.message);
-		res.json({'res': e.message});
-		return jobs;
-	}
-
-	res.json({'res': 'successful'});
-	return newjobs;
-};
-
 exports.handle_list_tasks = function (res) {
 	res.json({'tasks': jobRunner.get_all_tasks()});
 };

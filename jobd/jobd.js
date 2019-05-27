@@ -42,7 +42,15 @@ jobsldr.load(jobsdir).catch(err => {
 		routeHandler.handle_deps(req, res, jobs.depGraph);
 
 	}).get('/reload', function (req, res) {
-		jobs = routeHandler.handle_reload(res, jobsldr, jobsdir, jobs);
+
+		jobsldr.load(jobsdir).catch(err => {
+			console.log(err);
+			res.json({'res': err});
+
+		}).then(_jobs => {
+			jobs = _jobs;
+			res.json({'res': 'successful'});
+		});
 
 	}).post('/stdin', function (req, res) {
 		routeHandler.handle_stdin(req, res);
