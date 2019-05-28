@@ -2,7 +2,7 @@ var jobRunner = require('./jobrunner.js');
 var logger = require('./joblogger.js');
 var fs = require('fs');
 
-const fv_all = 80;
+const fv_all = 50;
 const fv_one = 200;
 const maxFailsToBreak = 3;
 

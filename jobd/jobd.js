@@ -50,6 +50,8 @@ jobsldr.load(jobsdir).catch(err => {
 		}).then(_jobs => {
 			jobs = _jobs;
 			console.log(jobs.env);
+			console.log('Jobs:');
+			console.log(jobs.depGraph.overallOrder());
 			res.json({'res': 'successful'});
 		});
 
