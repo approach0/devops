@@ -26,7 +26,7 @@ function loadEnvVar(env_file) {
 				var fields = line.split('=');
 				var key = fields[0];
 				if (undefined === resrv_map[key]) {
-					env_abc[key] = fields.slice(1).join();
+					env_abc[key] = fields.slice(1).join('=');
 				}
 			}
 		});

@@ -49,6 +49,7 @@ jobsldr.load(jobsdir).catch(err => {
 
 		}).then(_jobs => {
 			jobs = _jobs;
+			console.log(jobs.env);
 			res.json({'res': 'successful'});
 		});
 
