@@ -117,7 +117,7 @@ var runSingle = function(task_job, user, env_name, jobs, loop,
 
 	// joint node does not have a `cmd', skip it
 	if (cmd == '') {
-		onLog('all', 'No command to run here, skip.');
+		onLog(jobname, 'No command to run here, skip.');
 		setTimeout(loop.next, 500);
 		return;
 	}
@@ -182,11 +182,11 @@ function scheduleTimerTask(task_job, jobs, onLog, invokeFun)
 	invokeFun(); /* first-time invoke: immediately */
 	try {
 		cronJob = new CronJob(cronTab, function () {
-			onLog('all', 'Timer expires: [' + jobname + ']');
+			onLog(jobname, 'Timer expires: [' + jobname + ']');
 			invokeFun(); /* invoke later */
 		});
 	} catch(ex) {
-		onLog('all', "Bad cron pattern: " + cronTab);
+		onLog(jobname, "Bad cron pattern: " + cronTab);
 		return;
 	}
 
