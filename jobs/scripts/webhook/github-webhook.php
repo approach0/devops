@@ -19,7 +19,7 @@ $json_str = file_get_contents("php://input");
 $json = json_decode($json_str);
 $repo = $json->repository->name;
 
-$path = "/var/www/html/".$repo;
+$path = "/var/www/html/".$repo."-src/";
 
 /* 
  * make sure $DOCS_ENG_DIR and its sub-dirs can be written
