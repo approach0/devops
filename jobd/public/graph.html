@@ -23,10 +23,10 @@ $(document).ready(function () {
 				graphDef += node + "\n";
 			} else {
 				for (var i in depArr) {
-					graphDef += node + ' -.-> ' + depArr[i] + "\n";
+					graphDef += node + ' --> ' + depArr[i] + "\n";
 				}
 				if (refJob != undefined) {
-					graphDef += node + ' --> ' + refJob + "\n";
+					graphDef += node + ' -.-> ' + refJob + "\n";
 				}
 			}
 		}
