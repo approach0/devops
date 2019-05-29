@@ -14,7 +14,7 @@ $(document).ready(function () {
 		contentType: "application/json; charset=utf-8",
 		dataType: "json" /* expecting data type */
 	}).done(function (retjson) {
-		var graphDef = 'graph LR \n';
+		var graphDef = 'graph TD \n';
 		var depgraph = retjson['graph'] || {};
 		for (var node in depgraph) {
 			var depArr = depgraph[node]['dep'];
