@@ -4,7 +4,7 @@
     "local_port": 3081,
     "password": "131517",
     "timeout": 60,
-    "plugin": "/usr/local/bin/obfs-local",
+    "plugin": "/usr/local/bin/obfs-server",
     "plugin_opts": "obfs=http;obfs-host=iosapps.itunes.apple.com;failover=127.0.0.1:8080",
     "method":"chacha20-ietf-poly1305"
 }
