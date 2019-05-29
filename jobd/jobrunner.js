@@ -168,7 +168,7 @@ var runSingle = function(task_job, user, env_name, jobs, loop,
 	}
 };
 
-function scheduleJob(task_job, jobs, onLog, invokeFun)
+function scheduleTimerTask(task_job, jobs, onLog, invokeFun)
 {
 	let jobname = task_job.name;
 	let targetProps = jobs.depGraph.getNodeData(jobname);
@@ -179,31 +179,49 @@ function scheduleJob(task_job, jobs, onLog, invokeFun)
 	/* stop previous running cronJob */
 	if (cronJob) cronJob.stop();
 
-	if (cronTab == '') {
-		invokeFun(); /* invoke now */
-
-	} else {
-		try {
-			cronJob = new CronJob(cronTab, function () {
-				onLog('all', 'Timer expires: [' + jobname + ']');
-				invokeFun(); /* invoke later */
-			});
-		} catch(ex) {
-			onLog('all', "Bad cron pattern: " + cronTab);
-			return;
-		}
-
-		task_job['cronJob'] = cronJob;
-		cronJob.start();
+	invokeFun(); /* first-time invoke: immediately */
+	try {
+		cronJob = new CronJob(cronTab, function () {
+			onLog('all', 'Timer expires: [' + jobname + ']');
+			invokeFun(); /* invoke later */
+		});
+	} catch(ex) {
+		onLog('all', "Bad cron pattern: " + cronTab);
+		return;
 	}
+
+	task_job['cronJob'] = cronJob;
+	cronJob.start();
+}
+
+function mk_sublist(jobs, jobname)
+{
+	/* make runlist */
+	let subList = [];
+	let deps = jobs.depGraph.dependenciesOf(jobname);
+	deps.forEach(function (dep) {
+		subList.push(dep);
+	});
+	subList.push(jobname);
+	return subList;
 }
 
 exports.run = function(parentTaskID, runList, user, env_name, jobs,
                        onSpawn, onExit, onFinal, onLog) {
-	/* create task history */
-	let task = tasks.create(runList);
-	task["parent_task"] = parentTaskID;
-	task["env_name"] = env_name;
+	let task = null;
+	if (runList === null) {
+		/* in this case, run task specified by parentTaskID */
+		onLog('re-run task', "#" + parentTaskID);
+		task = tasks.map(parentTaskID);
+		if (task == null) {
+			onLog('re-run task', "task not found.");
+			return;
+		}
+		runList = task.runList;
+	} else {
+		/* create new task */
+		task = tasks.create(runList, parentTaskID, env_name, false);
+	}
 
 	/* sync running */
 	syncLoop(runList, function (arr, idx, loop) {
@@ -235,14 +253,7 @@ exports.run = function(parentTaskID, runList, user, env_name, jobs,
 				return;
 			}
 
-			/* make runlist */
-			let subList = [];
-			let deps = jobs.depGraph.dependenciesOf(ref);
-			deps.forEach(function (dep) {
-				subList.push(dep);
-			});
-			subList.push(ref);
-
+			let subList = mk_sublist(jobs, ref);
 			exports.run(task.id, subList, user, env_name, jobs,
 				onSpawn, onExit,
 				/* on Final */ function (j, completed) {
@@ -258,17 +269,31 @@ exports.run = function(parentTaskID, runList, user, env_name, jobs,
 			onLog(jobname, 'dry run ==> ' + jobname);
 			onExit(jobname, props, 0);
 			setTimeout(loop.next, 500);
-			return;
+			return task.id;
 		}
 
-		/* schedule a time to run (can be immediately) */
-		scheduleJob(task_job, jobs, onLog, function () {
+		onSpawn(jobname, props); /* on spawn callback */
+		runSingle(task_job, user, env_name, jobs, loop, onLog, onExit);
 
-			onSpawn(jobname, props); /* callback */
-
-			/* actually run */
-			runSingle(task_job, user, env_name, jobs, loop, onLog, onExit);
-		});
+		/* if this is top-level (parent=0) timer job, schedule a timer task */
+		let cronTab = props['timer'] || '';
+		if (parentTaskID == 0 && cronTab != '') {
+			let timerTaskID = -1;
+			scheduleTimerTask(task_job, jobs, onLog, function () {
+				if (timerTaskID == -1) {
+					/* immediately fork a task (pending) */
+					subList = mk_sublist(jobs, jobname);
+					/* create new task */
+					pending_task = tasks.create(subList, task.id, env_name, true);
+					/* now we save pending task ID */
+					timerTaskID = pending_task.id;
+				} else {
+					/* timer invokes */
+					exports.run(timerTaskID, null, user, env_name, jobs,
+						onSpawn, onExit, onFinal, onLog);
+				}
+			});
+		}
 	}, function (arr, idx, loop, completed) {
 		let jobname = arr[idx];
 

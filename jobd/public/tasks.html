@@ -48,14 +48,16 @@ function printTasks(tasks) {
 		var print = '';
 		print += '[<a href="javascript:;" onclick="kill({0})">X</a>] ';
 		print = print.replace('{0}', task.id);
-		print += '<b>Task#{1} {2} ';
+		if (task.timer_task)
+			print += 'Timer task ';
+		print += '<b>#{1}</b> {2} ';
 		print = print.replace('{1}', task.id);
 		print = print.replace('{2}', task.env_name);
 		if (task.parent_task != 0) {
-			print += '(parent: #{1})';
+			print += '(parent: <b>#{1}</b>)';
 			print = print.replace('{1}', task.parent_task);
 		}
-		print += '</b>:';
+		print += ' : ';
 		$("#tasks").append(print);
 		for (var j = 0; j < task.joblist.length; j ++) {
 			var task_job = task.joblist[j];

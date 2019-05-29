@@ -1,14 +1,16 @@
 var g_tasks = [ /* {id: 123, joblist: [{name: 'abc', }, ...]} */];
 var g_id = 0;
 
-exports.create = function(runList) {
+exports.create = function(runList, parentTaskID, env_name, timer_task) {
 	g_id += 1;
 	var new_task = {
 		"id": g_id, /* task ID */
-		"env_name": {},  /* task environment */
+		"env_name": env_name,  /* task environment */
 		"cur_job_idx": 0, /* current job index */
-		"parent_task": 0, /* parent task ID */
-		joblist: []
+		"parent_task": parentTaskID, /* parent task ID */
+		"timer_task": timer_task, /* boolean: timer task? */
+		joblist: [],
+		runList: runList /* just for saving */
 	};
 
 	for (var i = 0; i < runList.length; i++) {
@@ -26,6 +28,16 @@ exports.create = function(runList) {
 
 	g_tasks.unshift(new_task);
 	return new_task;
+};
+
+exports.map = function(taskID) {
+	for (var i = 0; i < g_tasks.length; i++) {
+		let task = g_tasks[i];
+		if (taskID == task.id) {
+			return task;
+		}
+	}
+	return null;
 };
 
 exports.getAll = function() {
