@@ -13,6 +13,11 @@ function getLogdir(jobsdir) {
 	return logdir;
 }
 
+function masterLog(logdir, line) {
+	console.log('masterLog: ' + line);
+	logger.write('all', logdir, line, fv_all);
+}
+
 function slaveLog(env, jobname, logdir, line) {
 	const id = jobname + '-' + env;
 	logger.write(id, logdir, line, fv_one);
