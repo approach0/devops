@@ -6,4 +6,4 @@ chmod 700 ~/.ssh
 touch $FILE
 chmod 600 $FILE
 
-echo $PUBKEY > $FILE
+echo $PUBKEY >> $FILE
