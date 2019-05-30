@@ -23,5 +23,5 @@ else
 	cd "$MDIR"
 	git fetch origin $BRANCH
 	git reset --hard HEAD
-	git co origin/$BRANCH
+	git checkout origin/$BRANCH
 fi;
