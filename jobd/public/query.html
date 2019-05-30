@@ -95,14 +95,27 @@ $(document).ready(function () {
 </p>
 <h3>Query</h3>
 
-<p>
 Stared queries:
-	<a href="javascript: void(0)" class="common-query">ssh:show-remote-pubkey</a> (and copy to github!),
-	<a href="javascript: void(0)" class="common-query">deploy:a0-ready-run</a> (master first, then slaves),
-	<a href="javascript: void(0)" class="common-query">deploy:a0-master</a> (master only),
-	<a href="javascript: void(0)" class="common-query">ss:serve</a>,
-	<a href="javascript: void(0)" class="common-query">httpd:https-update</a> (timer job).
-</p>
+<ul>
+	<li><a href="javascript: void(0)" class="common-query">ssh:show-remote-pubkey</a> (and copy to github!),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">ssh:master-slave</a> (let master ssh to slaves),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">deploy:a0-ready-run</a> (master first, then slaves),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">deploy:a0-master</a> (master only),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">webhook:ready</a> (docs and guide, master only),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">httpd:https-update</a> (timer job, master only).
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">ecir2019:serve</a> (master only),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">ss:serve</a> (for GFW, maybe slave only?),
+	</li>
+	<li><a href="javascript: void(0)" class="common-query">base-software:dotfiles</a> (optional).
+	</li>
+</ul>
 
 <select id="type">
 <option value="goal">goal</option>
