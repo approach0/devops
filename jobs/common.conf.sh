@@ -1,7 +1,7 @@
 ############
 # Common
 ############
-export DOMAIN=xitizu.com
+export DOMAIN=approach0.xyz
 
 ############
 # Fixed
