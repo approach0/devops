@@ -15,6 +15,10 @@ export RSYNC_PORT=8990
 ############
 # Shortcuts
 ############
+export IP=${IP_ARRAY[$RANK]}
+export MASTER=${IP_ARRAY[0]}
+export SLAVES="${IP_ARRAY[@]:1}"
+
 export TOP=$PWD/../jobs
 export SCRIPT=$TOP/scripts
 export CONFIG=$TOP/configs
