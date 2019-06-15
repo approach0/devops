@@ -12,6 +12,7 @@ export SSH_OLD_PORT=22 # used when changing port
 
 export RSYNC_PORT=8990
 
+export FORCE_INDRI_BUILD=false
 export FORCE_HTTP_CONF_UPDATE=false
 
 ############
