@@ -13,6 +13,9 @@ export SSH_OLD_PORT=22 # used when changing port
 export RSYNC_PORT=8990
 
 export FORCE_INDRI_BUILD=false
+
+# If https cert is expired, set force http update
+# to `true', after reload the https will be disabled.
 export FORCE_HTTP_CONF_UPDATE=false
 
 ############
