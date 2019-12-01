@@ -4,7 +4,7 @@ RANK=$2
 set -e # abort on any error
 
 echo "make symbol link vdisk-mount.sh"
-ln -sf ~/a0/indexer/scripts/vdisk-mount.sh
+ln -sf ~/a0/indexerd/scripts/vdisk-mount.sh
 
 echo "make symbol link searchd into folder run-$RANK"
 mkdir -p ~/run-$RANK
