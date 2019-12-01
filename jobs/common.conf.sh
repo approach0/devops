@@ -18,6 +18,8 @@ export FORCE_INDRI_BUILD=false
 # to `true', after reload the https will be disabled.
 export FORCE_HTTP_CONF_UPDATE=false
 
+export QRY_LOG_BKUP=~/
+
 ############
 # Shortcuts
 ############
