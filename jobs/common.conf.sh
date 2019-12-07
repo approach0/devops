@@ -1,11 +1,4 @@
 ############
-# Common
-############
-
-#export DOMAIN=approach0.xyz
-export DOMAIN=xitizu.com
-
-############
 # Fixed
 ############
 export SSH_USER=root
