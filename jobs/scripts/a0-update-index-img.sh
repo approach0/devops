@@ -21,7 +21,7 @@ if mount | grep -q ${IMG}; then
 	umount mnt-${IMG}.run
 fi
 
-# then safely update image
+# then safely update image (if there is a new image)
 if [ -e $IMG ]; then
 	echo "update index image $IMG ..."
 	mv $IMG ${IMG}.run
