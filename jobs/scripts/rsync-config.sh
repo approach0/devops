@@ -9,5 +9,8 @@ sed -i 's/<port>/${RSYNC_PORT}/' rsyncd.conf
 killall -INT rsync
 rm -rf rsyncd.lock
 
+cat rsyncd.conf
+sleep 3
+
 rsync --daemon --config=rsyncd.conf
 EOF
