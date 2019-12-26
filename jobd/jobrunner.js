@@ -1,8 +1,8 @@
 var CronJob = require('cron').CronJob;
 var syncLoop = require('./syncloop.js').syncLoop;
 var extend = require('util')._extend;
-var userid = require('userid');
-var pty = require('node-pty');
+var userid = require('uid-number');
+var pty = require('node-pty-prebuilt-multiarch');
 var childProcess = require('child_process');
 var tasks = require('./tasks.js');
 
@@ -38,14 +38,16 @@ exports.spawn = function(cmd, opt, logLines, onExit,
 	}
 
 	/* spawn runner process */
-	var runner = spawnFun('/bin/sh', ['-c', cmd], {
-		'uid': userid.uid(user),
-		'gid': userid.gid(group),
-		'cwd': cwd,
-		'env': env,
-		'cols': 80,
-		'rows': 30,
-		'name': 'xterm-color'
+	userid(user, function (er, uid, gid) {
+		var runner = spawnFun('/bin/sh', ['-c', cmd], {
+			'uid': uid,
+			'gid': gid,
+			'cwd': cwd,
+			'env': env,
+			'cols': 80,
+			'rows': 30,
+			'name': 'xterm-color'
+		});
 	});
 
 	if (stdin(runner) == undefined) {
