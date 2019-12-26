@@ -1,10 +1,10 @@
 var CronJob = require('cron').CronJob;
 var syncLoop = require('./syncloop.js').syncLoop;
 var extend = require('util')._extend;
-var userid = require('uid-number');
 var pty = require('node-pty-prebuilt-multiarch');
 var childProcess = require('child_process');
 var tasks = require('./tasks.js');
+const process_ = require('process');
 
 exports.spawn = function(cmd, opt, logLines, onExit,
                      onSucc, onFail, onBreak) {
@@ -37,17 +37,22 @@ exports.spawn = function(cmd, opt, logLines, onExit,
 		loglines("fallback to 'pty'.");
 	}
 
+	var uid = 0;
+	var gid = 0;
+	if (user != 'root') {
+		uid = process_.getuid();
+		gid = process_.getgid();
+	}
+
 	/* spawn runner process */
-	userid(user, function (er, uid, gid) {
-		var runner = spawnFun('/bin/sh', ['-c', cmd], {
-			'uid': uid,
-			'gid': gid,
-			'cwd': cwd,
-			'env': env,
-			'cols': 80,
-			'rows': 30,
-			'name': 'xterm-color'
-		});
+	var runner = spawnFun('/bin/sh', ['-c', cmd], {
+		'uid': uid,
+		'gid': gid,
+		'cwd': cwd,
+		'env': env,
+		'cols': 80,
+		'rows': 30,
+		'name': 'xterm-color'
 	});
 
 	if (stdin(runner) == undefined) {
